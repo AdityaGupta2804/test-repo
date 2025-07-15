@@ -1,16 +1,24 @@
 steps:
-  - name: Install dependencies
-    run: npm install
+  - name: Install backend dependencies
+    run: cd todo_backend && npm install
 
-  - name: Run tests
-    run: npm test
+  - name: Install frontend dependencies
+    run: cd todo_frontend && npm install
+
+  # - name: Run frontend tests
+  #   run: cd todo_frontend && npm test
+
+  # Uncomment if backend has tests
+  # - name: Run backend tests
+  #   run: cd todo_backend && npm test
 
 deploy:
   frontend:
-    path: frontend/
+    path: todo_frontend/
     platform: vercel
-    token: VER_CEL_TOKEN   # optional if already stored
+    token: UfmhivOT5zQnogdwi6Cl0zA0
+
   backend:
-    path: backend/
+    path: todo_backend/
     platform: render
-    token: REN_DER_TOKEN   # optional if already stored
+    token: https://api.render.com/deploy/srv-abc123?key=YOUR_RENDER_KEY

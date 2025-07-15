@@ -16,7 +16,7 @@ deploy:
   frontend:
     path: todo_frontend/
     platform: vercel
-    token: htxu5lbpBMvys7qDbqZmZf4v
+    token: vcGpAtfhBwZKaoa48RvsAVz9
 
   backend:
     path: todo_backend/

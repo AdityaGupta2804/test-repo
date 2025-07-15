@@ -4,3 +4,13 @@ steps:
 
   - name: Run tests
     run: npm test
+
+deploy:
+  frontend:
+    path: frontend/
+    platform: vercel
+    token: VER_CEL_TOKEN   # optional if already stored
+  backend:
+    path: backend/
+    platform: render
+    token: REN_DER_TOKEN   # optional if already stored

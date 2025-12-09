@@ -1,0 +1,361 @@
+Experiment 1
+----------------------------------------
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+house_prices = [120000, 150000, 170000, 130000, 200000, 250000, 190000,
+300000, 280000, 220000, 160000, 180000, 210000]
+
+prices_series = pd.Series(house_prices)
+
+q1 = np.percentile(prices_series, 25)
+q3 = np.percentile(prices_series, 75)
+
+iqr = q3 - q1
+
+print("25th Percentile (Q1):", q1)
+print("75th Percentile (Q3):", q3)
+print("Interquartile Range (IQR):", iqr)
+
+plt.figure(figsize=(8, 5))
+sns.boxplot(x=prices_series)
+plt.title("Boxplot of House Prices")
+plt.xlabel("Price")
+plt.show()
+
+
+-------------------------------------------
+Experiment 2
+-------------------------------------------
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df = pd.read_csv(r'customer.csv')
+df.columns = df.columns.str.strip()
+
+plt.figure(figsize=(8, 5))
+sns.countplot(data=df, x='Satisfactory', hue='Purchase_repeated', palette='Set2')
+plt.title("Bar Plot: Satisfaction Level vs Repeat Purchase")
+plt.xlabel("Satisfaction Level")
+plt.ylabel("Number of Customers")
+plt.grid(axis='y')
+plt.legend(title="Repeat Purchase?")
+plt.tight_layout()
+plt.show()
+
+summary = df.groupby(['Satisfactory', 'Purchase_repeated']).size().unstack().fillna(0)
+summary.plot(kind='bar', stacked=True, figsize=(8, 5), colormap='Set2')
+plt.title("Stacked Bar Chart: Satisfaction Level vs Repeat Purchase")
+plt.xlabel("Satisfaction Level")
+plt.ylabel("Number of Customers")
+plt.xticks(rotation=0)
+plt.legend(title="Repeat Purchase?")
+plt.tight_layout()
+plt.show()
+
+--------------------------------------------
+Experiment 3
+--------------------------------------------
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = pd.read_csv(r"Automobile.csv")
+
+df.columns = df.columns.str.strip()
+
+numeric_cols = ['Fuel efficiency (mpg)', 'Engine size (lit)', 'Price (in thousands)', 'horsepower', 'acceleration']
+df_numeric = df[numeric_cols]
+
+sns.pairplot(df_numeric, diag_kind='kde', corner=True)
+plt.suptitle("Pair Plot of Car Variables", y=1.02)
+plt.show()
+
+corr = df_numeric.corr()
+
+plt.figure(figsize=(8,6))
+sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f")
+plt.title("Correlation Matrix of Car Features")
+plt.show()
+
+--------------------------------------------
+Experiment 4
+--------------------------------------------
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import re
+from scipy.stats import norm
+
+plt.style.use('default')
+sns.set_palette("deep")
+
+df = pd.read_csv(r"Software Engineer Salaries.csv")
+
+def extract_salary(salary_str):
+    if pd.isna(salary_str):
+        return None
+    salary_str = str(salary_str)
+    numbers = re.findall(r'\$(\d+)K', salary_str)
+    if len(numbers) == 2:
+        return (int(numbers[0]) + int(numbers[1])) / 2
+    elif len(numbers) == 1:
+        return int(numbers[0])
+    numbers = re.findall(r'\$(\d+)\s*[Kk]', salary_str)
+    if len(numbers) == 2:
+        return (int(numbers[0]) + int(numbers[1])) / 2
+    elif len(numbers) == 1:
+        return int(numbers[0])
+    return None
+
+df['Salary_Midpoint'] = df['Salary'].apply(extract_salary)
+df = df.dropna(subset=['Salary_Midpoint'])
+
+plt.figure(figsize=(12, 5))
+
+plt.subplot(1, 2, 1)
+plt.hist(df['Salary_Midpoint'], bins=30, edgecolor='black', alpha=0.7)
+plt.title('Distribution of Software Engineer Salaries')
+plt.xlabel('Salary (in thousands $)')
+plt.ylabel('Frequency')
+
+plt.subplot(1, 2, 2)
+sns.boxplot(x=df['Salary_Midpoint'])
+plt.title('Boxplot of Software Engineer Salaries')
+plt.xlabel('Salary (in thousands $)')
+
+plt.tight_layout()
+plt.show()
+
+original_skewness = df['Salary_Midpoint'].skew()
+print(f"Skewness of original salary data: {original_skewness:.2f}")
+
+sample_means = []
+for i in range(10):
+    sample = df.sample(n=50, random_state=i)
+    sample_mean = sample['Salary_Midpoint'].mean()
+    sample_means.append(sample_mean)
+    print(f"Sample {i+1} mean: ${sample_mean:.2f}K")
+
+plt.figure(figsize=(10, 6))
+plt.hist(sample_means, bins=8, edgecolor='black', alpha=0.7, density=True)
+plt.axvline(np.mean(sample_means), linestyle='dashed', linewidth=2, color='red',
+            label=f'Mean of sample means: ${np.mean(sample_means):.2f}K')
+plt.axvline(df['Salary_Midpoint'].mean(), linestyle='dashed', linewidth=2, color='green',
+            label=f'Population mean: ${df["Salary_Midpoint"].mean():.2f}K')
+plt.title('Distribution of Sample Means (n=50)')
+plt.xlabel('Sample Mean Salary (in thousands $)')
+plt.ylabel('Density')
+plt.legend()
+plt.show()
+
+std_error = df['Salary_Midpoint'].std() / np.sqrt(50)
+x = np.linspace(min(sample_means) - 5, max(sample_means) + 5, 100)
+y = norm.pdf(x, np.mean(sample_means), std_error)
+
+plt.figure(figsize=(10, 6))
+plt.hist(sample_means, bins=8, edgecolor='black', alpha=0.7, density=True, label='Sample Means')
+plt.plot(x, y, 'r-', label='Normal Distribution Approximation')
+plt.title('Sample Means Distribution vs Normal Distribution')
+plt.xlabel('Sample Mean Salary (in thousands $)')
+plt.ylabel('Density')
+plt.legend()
+plt.show()
+
+
+--------------------------------------------
+Experiment 5
+--------------------------------------------
+
+import numpy as np
+from scipy import stats
+
+sample_mean = 8
+sample_std = 2
+n = 20
+mu_0 = 0
+
+t_stat = (sample_mean - mu_0) / (sample_std / np.sqrt(n))
+
+df = n - 1
+
+p_value = 2 * (1 - stats.t.cdf(abs(t_stat), df=df))
+print("t-statistic:", t_stat)
+print("Degrees of freedom:", df)
+print("p-value:", p_value)
+
+alpha = 0.05
+if p_value < alpha:
+    print("Reject H0: The drug significantly affects heart rate.")
+else:
+    print("Fail to Reject H0: No significant effect detected.")
+
+
+--------------------------------------------
+Experiment 6
+--------------------------------------------
+
+import numpy as np
+from statsmodels.stats.proportion import proportions_ztest
+
+n_A, sales_A = 1000, 120
+n_B, sales_B = 1200, 150
+
+p_A = sales_A / n_A
+p_B = sales_B / n_B
+
+print(f"Conversion Rate A: {p_A:.4f}")
+print(f"Conversion Rate B: {p_B:.4f}")
+
+count = np.array([sales_A, sales_B])
+nobs = np.array([n_A, n_B])
+
+stat, pval = proportions_ztest(count, nobs)
+
+print(f"Z-statistic: {stat:.4f}")
+print(f"P-value: {pval:.4f}")
+
+alpha = 0.05
+if pval < alpha:
+    print("Reject H0: Significant difference in conversion rates.")
+else:
+    print("Fail to reject H0: No significant difference in conversion rates.")
+
+
+--------------------------------------------
+Experiment 7
+--------------------------------------------
+
+import numpy as np
+from scipy import stats
+
+mean_A, std_A, n_A = 1000, 100, 30
+mean_B, std_B, n_B = 950, 120, 30
+
+np.random.seed(42)
+store_A = np.random.normal(mean_A, std_A, n_A)
+store_B = np.random.normal(mean_B, std_B, n_B)
+
+t_stat, p_value = stats.ttest_ind(store_A, store_B, equal_var=False)
+print("Two-sample t-test results:")
+print(f"T-statistic: {t_stat:.4f}")
+print(f"P-value: {p_value:.4f}")
+
+alpha = 0.05
+if p_value < alpha:
+    print("Reject the null hypothesis: There is a significant difference in sales.")
+else:
+    print("Fail to reject the null hypothesis: No significant difference in sales.")
+
+
+--------------------------------------------
+Experiment 8
+--------------------------------------------
+
+import pandas as pd
+import statsmodels.formula.api as smf
+
+df = pd.read_csv(r"C:\Users\aryan\OneDrive\Desktop\abc.csv")
+
+print(df.head())
+
+model = smf.ols("Salary ~ Q('Years of Experience') + C(Q('Education Level'))", data=df).fit()
+
+new_data = pd.DataFrame({
+    "Years of Experience": [5, 5, 5],
+    "Education Level": ["Bachelor's", "Master's", "PhD"]
+})
+
+predictions = model.predict(new_data)
+
+print(new_data.assign(Predicted_Salary=predictions))
+
+
+--------------------------------------------
+Experiment 9
+--------------------------------------------
+
+import pandas as pd
+import numpy as np
+import statsmodels.formula.api as smf
+import matplotlib.pyplot as plt
+
+data = {
+    "SqFt": [800, 1200, 1500, 1800, 2000, 2200, 2500, 2800, 3200, 3500],
+    "Price": [100000, 130000, 160000, 180000, 210000, 260000, 300000, 350000, 400000, 420000]
+}
+df = pd.DataFrame(data)
+
+df["spline"] = np.where(df["SqFt"] > 2000, df["SqFt"] - 2000, 0)
+
+model = smf.ols("Price ~ SqFt + spline", data=df).fit()
+print(model.summary())
+
+df["Predicted"] = model.predict(df)
+
+plt.scatter(df["SqFt"], df["Price"], color="blue", label="Actual Data")
+plt.plot(df["SqFt"], df["Predicted"], color="red", label="Spline Regression")
+plt.axvline(2000, color="green", linestyle="--", label="Knot at 2000 sq.ft")
+plt.xlabel("Square Footage")
+plt.ylabel("Price")
+plt.legend()
+plt.show()
+
+--------------------------------------------
+Experiment 10
+--------------------------------------------
+import numpy as np
+import pandas as pd
+
+intercept = 2.5
+beta_age = -0.03
+beta_condition = 0.5
+
+def expected_visits(age, condition):
+    log_lambda = intercept + beta_age * age + beta_condition * condition
+    return np.exp(log_lambda)
+
+visits_with_condition = expected_visits(60, 1)
+visits_without_condition = expected_visits(60, 0)
+
+results = pd.DataFrame({
+    "Age": [60, 60],
+    "Condition": ["Yes", "No"],
+    "Expected_Visits": [visits_with_condition, visits_without_condition]
+})
+
+print(results)
+--------------------------------------------
+Experiment 11
+--------------------------------------------
+import numpy as np
+from scipy import stats
+
+mu0 = 200
+xbar = 190
+s = 15
+n = 40
+alpha = 0.05
+
+t_stat = (xbar - mu0) / (s / np.sqrt(n))
+df = n - 1
+
+t_crit = stats.t.ppf(alpha, df)
+p_value = stats.t.cdf(t_stat, df)
+
+print(f"T-statistic: {t_stat:.4f}")
+print(f"Critical t-value (one-tailed): {t_crit:.4f}")
+print(f"P-value: {p_value:.4f}")
+
+if t_stat < t_crit:
+    print("Reject H0: The new recipe has significantly fewer calories.")
+else:
+    print("Fail to Reject H0: No significant evidence that the new recipe has fewer calories.")
